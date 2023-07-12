@@ -2,6 +2,14 @@ import { createServer } from "http";
 import { readFile, readdir } from "fs/promises";
 import sanitizeFilename from "sanitize-filename";
 
+// Importing this library we can start to see the beauty of RSC
+// This file is only executed on the server; if we check the network
+// when loading the website there's no `react-markdown` lib downloaded
+// or anything like that.
+// The library gets imported on the server, used to render the `.md`
+// files into HTML and then returned to the client!
+import Markdown from 'react-markdown';
+
 // This is a server to host data-local resources like databases and RSC.
 
 createServer(async (req, res) => {
@@ -50,7 +58,9 @@ function BlogPostPage({ postSlug }) {
 async function Post({ slug }) {
   let content;
   try {
-    content = await readFile("./posts/" + slug + ".txt", "utf8");
+    // Read `.md` files instead of plain text files so we can support
+    // markdown rendering of the posts
+    content = await readFile("./posts/" + slug + ".md", "utf8");
   } catch (err) {
     throwNotFound(err);
   }
@@ -61,7 +71,8 @@ async function Post({ slug }) {
       <h2>
         <a href={"/" + slug}>{slug}</a>
       </h2>
-      <article>{content}</article>
+      {/* Replace <article> with <Markdown> from react-markdown */}
+      <Markdown>{content}</Markdown>
     </>
   );
 }
