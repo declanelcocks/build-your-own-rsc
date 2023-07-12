@@ -55,12 +55,14 @@ async function Post({ slug }) {
     throwNotFound(err);
   }
   return (
-    <section>
+    // Replace a <section></section> with a <></> since the section
+    // was not actually doing anything
+    <>
       <h2>
         <a href={"/" + slug}>{slug}</a>
       </h2>
       <article>{content}</article>
-    </section>
+    </>
   );
 }
 
@@ -130,7 +132,15 @@ async function renderJSXToClientJSX(jsx) {
     return Promise.all(jsx.map((child) => renderJSXToClientJSX(child)));
   } else if (jsx != null && typeof jsx === "object") {
     if (jsx.$$typeof === Symbol.for("react.element")) {
-      if (typeof jsx.type === "string") {
+      // <></> will return a JSX object with a type of 'react.fragment'
+      // The purpose of a fragment is to just continue as if it doesn't exist
+      // so we just take the children and continue mapping through its
+      // children, similar to how we handle the 'function' type.
+      if (jsx.type === Symbol.for('react.fragment')) {
+        const { children } = jsx.props;
+
+        return await renderJSXToClientJSX(children);
+      } else if (typeof jsx.type === "string") {
         return {
           ...jsx,
           props: await renderJSXToClientJSX(jsx.props),
