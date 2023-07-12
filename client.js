@@ -3,11 +3,26 @@ import { hydrateRoot } from "react-dom/client";
 const root = hydrateRoot(document, getInitialClientJSX());
 let currentPathname = window.location.pathname;
 
+function randomRgbValue() {
+  return Math.floor(Math.random() * 256)
+    .toString(16)
+    .padStart(2, '0');
+}
+
+function randomColor() {
+  return `#${randomRgbValue()}${randomRgbValue()}${randomRgbValue()}`;
+}
+
+const body = document.querySelector('body');
+body.style.transition = 'background-color 2s ease-in-out';
+body.style.backgroundColor = randomColor();
+
 async function navigate(pathname) {
   currentPathname = pathname;
   const clientJSX = await fetchClientJSX(pathname);
   if (pathname === currentPathname) {
     root.render(clientJSX);
+    body.style.backgroundColor = randomColor();
   }
 }
 
