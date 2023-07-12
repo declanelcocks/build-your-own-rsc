@@ -1,24 +1,30 @@
 import { createServer } from "http";
 import { readFile } from "fs/promises";
 import { renderToString } from "react-dom/server";
+import getStaticAsset from './getStaticAsset.js';
 
 // This is a server to host CDN distributed resources like static files and SSR.
 
 createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
-    if (url.pathname === "/client.js") {
-      const content = await readFile("./client.js", "utf8");
-      res.setHeader("Content-Type", "text/javascript");
-      res.end(content);
+
+    // A bit hacky but this now acts as a go-to for any path that has a `.`
+    // in it. That would generally be files (e.g. 'client.js') or other
+    // asset imports. Any other URL, such as a page, wouldn't include
+    // any dots in it
+    if (url.pathname.includes('.')) {
+      await getStaticAsset(url.pathname, res);
       return;
     }
+
     const response = await fetch("http://127.0.0.1:8081" + url.pathname);
     if (!response.ok) {
       res.statusCode = response.status;
       res.end();
       return;
     }
+
     const clientJSXString = await response.text();
     if (url.searchParams.has("jsx")) {
       res.setHeader("Content-Type", "application/json");

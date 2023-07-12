@@ -10,6 +10,8 @@ import sanitizeFilename from "sanitize-filename";
 // files into HTML and then returned to the client!
 import Markdown from 'react-markdown';
 
+import sizeOf from 'image-size';
+
 // This is a server to host data-local resources like databases and RSC.
 
 createServer(async (req, res) => {
@@ -72,9 +74,32 @@ async function Post({ slug }) {
         <a href={"/" + slug}>{slug}</a>
       </h2>
       {/* Replace <article> with <Markdown> from react-markdown */}
-      <Markdown>{content}</Markdown>
+      <Markdown
+        components={{
+          // we can now add a custom component to render when we receive
+          // an img component. Remember that this is the server file, so
+          // the library will read the file and its dimensions purely
+          // on the server, the client won't know anything about it.
+          img: Image,
+        }}
+      >
+        {content}
+      </Markdown>
     </>
   );
+}
+
+function Image({ src, alt }) {
+  const dimensions = sizeOf(`./static/images/${src}`);
+
+  return (
+    <img
+      src={`/images/${src}`}
+      alt={alt}
+      width={dimensions.width}
+      height={dimensions.height}
+    />
+  )
 }
 
 function BlogLayout({ children }) {
