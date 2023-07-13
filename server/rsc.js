@@ -1,6 +1,5 @@
 import { createServer } from "http";
-import { readFile, readdir } from "fs/promises";
-import sanitizeFilename from "sanitize-filename";
+import Router from './components/Router.js';
 
 // Importing this library we can start to see the beauty of RSC
 // This file is only executed on the server; if we check the network
@@ -25,125 +24,11 @@ createServer(async (req, res) => {
   }
 }).listen(8081);
 
-function Router({ url }) {
-  let page;
-  if (url.pathname === "/") {
-    page = <BlogIndexPage />;
-  } else {
-    const postSlug = sanitizeFilename(url.pathname.slice(1));
-    page = <BlogPostPage postSlug={postSlug} />;
-  }
-  return <BlogLayout>{page}</BlogLayout>;
-}
-
-async function BlogIndexPage() {
-  const postFiles = await readdir("./posts");
-  const postSlugs = postFiles.map((file) =>
-    file.slice(0, file.lastIndexOf("."))
-  );
-  return (
-    <section>
-      <h1>Welcome to my blog</h1>
-      <div>
-        {postSlugs.map((slug) => (
-          <Post key={slug} slug={slug} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function BlogPostPage({ postSlug }) {
-  return <Post slug={postSlug} />;
-}
-
-async function Post({ slug }) {
-  let content;
-  try {
-    // Read `.md` files instead of plain text files so we can support
-    // markdown rendering of the posts
-    content = await readFile("./posts/" + slug + ".md", "utf8");
-  } catch (err) {
-    throwNotFound(err);
-  }
-  return (
-    // Replace a <section></section> with a <></> since the section
-    // was not actually doing anything
-    <>
-      <h2>
-        <a href={"/" + slug}>{slug}</a>
-      </h2>
-      {/* Replace <article> with <Markdown> from react-markdown */}
-      <Markdown
-        components={{
-          // we can now add a custom component to render when we receive
-          // an img component. Remember that this is the server file, so
-          // the library will read the file and its dimensions purely
-          // on the server, the client won't know anything about it.
-          img: Image,
-        }}
-      >
-        {content}
-      </Markdown>
-    </>
-  );
-}
-
-function Image({ src, alt }) {
-  const dimensions = sizeOf(`./static/images/${src}`);
-
-  return (
-    <img
-      src={`/images/${src}`}
-      alt={alt}
-      width={dimensions.width}
-      height={dimensions.height}
-    />
-  )
-}
-
-function BlogLayout({ children }) {
-  const author = "Jae Doe";
-  return (
-    <html>
-      <body>
-        <nav>
-          <a href="/">Home</a>
-          <hr />
-          <input />
-          <hr />
-        </nav>
-        <main>{children}</main>
-        <Footer author={author} />
-      </body>
-    </html>
-  );
-}
-
-function Footer({ author }) {
-  return (
-    <footer>
-      <hr />
-      <p>
-        <i>
-          (c) {author} {new Date().getFullYear()}
-        </i>
-      </p>
-    </footer>
-  );
-}
-
 async function sendJSX(res, jsx) {
   const clientJSX = await renderJSXToClientJSX(jsx);
   const clientJSXString = JSON.stringify(clientJSX, stringifyJSX);
   res.setHeader("Content-Type", "application/json");
   res.end(clientJSXString);
-}
-
-function throwNotFound(cause) {
-  const notFound = new Error("Not found.", { cause });
-  notFound.statusCode = 404;
-  throw notFound;
 }
 
 function stringifyJSX(key, value) {
