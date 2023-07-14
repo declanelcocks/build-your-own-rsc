@@ -7,7 +7,6 @@ import { Fragment } from 'react';
 createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`)
-
     if (url.pathname.startsWith("/api/")) {
       // const action = url.searchParams.get("action")
       const action = url.pathname.slice(5)

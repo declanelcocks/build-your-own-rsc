@@ -1,50 +1,35 @@
-import { hydrateRoot } from "react-dom/client";
+import { hydrateRoot } from "react-dom/client"
+import colorChanger from "./color-changer.js"
 
-const root = hydrateRoot(document, getInitialClientJSX());
-let currentPathname = window.location.pathname;
-
-function randomRgbValue() {
-  return Math.floor(Math.random() * 256)
-    .toString(16)
-    .padStart(2, '0');
-}
-
-function randomColor() {
-  return `#${randomRgbValue()}${randomRgbValue()}${randomRgbValue()}`;
-}
-
-const body = document.querySelector('body');
-body.style.transition = 'background-color 2s ease-in-out';
-body.style.backgroundColor = randomColor();
+const root = hydrateRoot(document, getInitialClientJSX())
 
 async function navigate(pathname) {
-  currentPathname = pathname;
-  const clientJSX = await fetchClientJSX(pathname);
-  if (pathname === currentPathname) {
-    root.render(clientJSX);
-    body.style.backgroundColor = randomColor();
-  }
+  const clientJSX = await fetchClientJSX(pathname)
+
+  await colorChanger()
+
+  root.render(clientJSX)
 }
 
 function getInitialClientJSX() {
-  const clientJSX = JSON.parse(window.__INITIAL_CLIENT_JSX_STRING__, parseJSX);
-  return clientJSX;
+  const clientJSX = JSON.parse(window.__INITIAL_CLIENT_JSX_STRING__, parseJSX)
+  return clientJSX
 }
 
 async function fetchClientJSX(pathname) {
-  const response = await fetch(pathname + "?jsx");
-  const clientJSXString = await response.text();
-  const clientJSX = JSON.parse(clientJSXString, parseJSX);
-  return clientJSX;
+  const response = await fetch(pathname + "?jsx")
+  const clientJSXString = await response.text()
+  const clientJSX = JSON.parse(clientJSXString, parseJSX)
+  return clientJSX
 }
 
 function parseJSX(key, value) {
   if (value === "$RE") {
-    return Symbol.for("react.element");
+    return Symbol.for("react.element")
   } else if (typeof value === "string" && value.startsWith("$$")) {
-    return value.slice(1);
+    return value.slice(1)
   } else {
-    return value;
+    return value
   }
 }
 
@@ -52,25 +37,25 @@ window.addEventListener(
   "click",
   (e) => {
     if (e.target.tagName !== "A") {
-      return;
+      return
     }
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
-      return;
+      return
     }
-    const href = e.target.getAttribute("href");
+    const href = e.target.getAttribute("href")
     if (!href.startsWith("/")) {
-      return;
+      return
     }
-    e.preventDefault();
-    window.history.pushState(null, null, href);
-    navigate(href);
+    e.preventDefault()
+    window.history.pushState(null, null, href)
+    navigate(href)
   },
   true
-);
+)
 
 window.addEventListener("popstate", () => {
-  navigate(window.location.pathname);
-});
+  navigate(window.location.pathname)
+})
 
 window.addEventListener("submit", async (e) => {
   const action = e.target.action
@@ -126,3 +111,5 @@ window.addEventListener("submit", async (e) => {
     console.error(err)
   }
 })
+
+await colorChanger()

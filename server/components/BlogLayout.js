@@ -1,3 +1,4 @@
+import ColorChanger from './ColorChanger.js';
 import Footer from './Footer.js'
 
 export default function BlogLayout({ children }) {
@@ -8,10 +9,12 @@ export default function BlogLayout({ children }) {
         <nav>
           <a href="/">Home</a>
           <hr />
-          <input />
+          <ColorChanger />
           <hr />
         </nav>
+
         <main>{children}</main>
+
         <Footer author={author} />
       </body>
     </html>

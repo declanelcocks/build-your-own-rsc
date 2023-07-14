@@ -15,6 +15,7 @@ createServer(async (req, res) => {
       return
     }
     const response = await fetch("http://127.0.0.1:8081" + url.pathname)
+
     if (!response.ok) {
       errorResponse(res, response)
       return
@@ -62,9 +63,14 @@ function parseJSX(key, value) {
 
 async function serveAction(req, res) {
   console.log("serveAction", req.url)
-  const rawBody = await readForm(req)
-  console.log("rawBody", rawBody)
+  let rawBody
+  try {
+    rawBody = await readForm(req)
+  } catch (err) {
+    console.log("error in readForm", err)
+  }
   const body = JSON.stringify(rawBody)
+
   const url = new URL(req.url, `http://${req.headers.host}`)
   const fetchURL =
     "http://127.0.0.1:8081" +
@@ -73,16 +79,30 @@ async function serveAction(req, res) {
 
   const response = await fetch(fetchURL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body,
   })
 
   if (!response.ok) {
     errorResponse(res, response)
-  } else {
-    res.end();
+  }
+
+  const bodyString = await response.text()
+  const headers = response.headers
+  console.log("headers before", res.getHeaders())
+  writeHeaders(headers, res)
+  console.log("headers after", res.getHeaders())
+  console.log("cookies", headers.get("set-cookie"))
+  res.end(bodyString)
+}
+
+function writeHeaders(headers, res) {
+  try {
+    for (const [key, value] of headers.entries()) {
+      console.log("writeHeaders", key, value)
+      res.setHeader(key, value)
+    }
+  } catch (err) {
+    console.log("error in writeHeaders", err)
   }
 }
 
