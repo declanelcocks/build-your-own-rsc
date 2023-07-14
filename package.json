@@ -18,6 +18,12 @@
     "start:rsc": "nodemon -- --experimental-loader ./node-jsx-loader.js ./server/rsc.js",
     "start:ssr": "nodemon -- --experimental-loader ./node-jsx-loader.js ./server/ssr.js"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/",
+      "**.json"
+    ]
+  },
   "devDependencies": {
     "@types/node": "^17.0.21"
   }

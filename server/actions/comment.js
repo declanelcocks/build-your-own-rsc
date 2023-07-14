@@ -28,7 +28,8 @@ export default async function handleCommentPost(req, res) {
   comments.push(newComment)
   const commentsFile = "./comments/" + slug + ".json"
   await writeFile(commentsFile, JSON.stringify(comments, null, 2))
-  res.setHeader("Location", "/" + slug)
+  res.setHeader("location", "/" + slug)
+  res.statusCode = 303;
   console.log("redirecting to", "/" + slug)
   res.end()
 }
