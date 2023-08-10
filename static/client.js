@@ -2,13 +2,33 @@ import { hydrateRoot } from "react-dom/client"
 import colorChanger from "./color-changer.js"
 
 const root = hydrateRoot(document, getInitialClientJSX())
+// sets pathname to the browser's pathname
+let currentPathname = window.location.pathname;
 
-async function navigate(pathname) {
-  const clientJSX = await fetchClientJSX(pathname)
+let clientJsxCache = {}
+
+clientJsxCache[currentPathname] = getInitialClientJSX();
+
+async function navigate(pathname, options) {
+  let { cache } = options ?? { cache: false }
+
+  currentPathname = pathname;
+
+  if (cache && clientJsxCache[pathname]) {
+    console.log('cache hit', pathname)
+    root.render(clientJsxCache[pathname]);
+    return;
+  } else {
+    console.log('cache miss', pathname)
+    const clientJSX = await fetchClientJSX(pathname)
+    clientJsxCache[pathname] = clientJSX;
+
+    if (pathname === currentPathname) {
+      root.render(clientJSX)
+    }
+  }
 
   await colorChanger()
-
-  root.render(clientJSX)
 }
 
 function getInitialClientJSX() {
@@ -54,7 +74,7 @@ window.addEventListener(
 )
 
 window.addEventListener("popstate", () => {
-  navigate(window.location.pathname)
+  navigate(window.location.pathname, { cache: true })
 })
 
 window.addEventListener("submit", async (e) => {
