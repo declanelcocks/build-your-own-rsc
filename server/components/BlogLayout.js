@@ -1,4 +1,5 @@
 import ColorChanger from './ColorChanger.js';
+import PopularPosts from './PopularPosts.js';
 import Footer from './Footer.js'
 
 export default function BlogLayout({ children }) {
@@ -11,6 +12,7 @@ export default function BlogLayout({ children }) {
           <hr />
           <ColorChanger />
           <hr />
+          <PopularPosts />
         </nav>
 
         <main>{children}</main>
